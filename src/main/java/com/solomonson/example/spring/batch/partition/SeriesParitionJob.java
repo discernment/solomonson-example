@@ -16,17 +16,15 @@ import javax.inject.Inject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * Created by randy.solomonson on 8/7/2014.
+ * Created by randy.solomonson on 8/14/2014.
  */
 @Configuration
 @EnableBatchProcessing
-public class ExamplePartitionJob {
-    private final Logger logger = LoggerFactory.getLogger(ExamplePartitionJob.class);
+public class SeriesParitionJob {
+    private final Logger logger = LoggerFactory.getLogger(SeriesParitionJob.class);
 
     public static class User{
         private String name;
@@ -55,7 +53,7 @@ public class ExamplePartitionJob {
                 //Start the job by running the main step
                 .start(masterStep())
 
-                //Optional:  Use a listener just to show stats.
+                        //Optional:  Use a listener just to show stats.
                 .listener(new JobExecutionListener() {
                     @Override
                     public void beforeJob(JobExecution jobExecution) {
@@ -98,11 +96,11 @@ public class ExamplePartitionJob {
                     }
                 })
 
-                //Define the slave step to run on all the of the contexts created above.
+                        //Define the slave step to run on all the of the contexts created above.
                 .step(slaveStep())
 
-                //Define the threading of the steps.
-                //.taskExecutor(taskExecutor)
+                        //Define the threading of the steps.
+                        //.taskExecutor(taskExecutor)
 
                 .build();
     }
@@ -110,8 +108,8 @@ public class ExamplePartitionJob {
     @Bean
     public Step slaveStep() {
         ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-        taskExecutor.setCorePoolSize(4);
-        taskExecutor.setMaxPoolSize(4);
+        taskExecutor.setCorePoolSize(2);
+        taskExecutor.setMaxPoolSize(2);
         taskExecutor.afterPropertiesSet();
 
 
@@ -153,24 +151,23 @@ public class ExamplePartitionJob {
                     }
                 })
 
-                //Define what to do with each object being processed.
+                        //Define what to do with each object being processed.
                 .processor(new ItemProcessor<User, User>() {
                     @Override
                     public User process(User item) throws Exception {
-                        //If you want the step execution context, do this: StepSynchronizationManager.getContext().getStepExecution().getExecutionContext()
                         logger.info("{}",item);
                         //Thread.sleep(1000);
                         return item;
                     }
                 })
 
-                //Write data to something defined in the writer itself
+                        //Write data to something defined in the writer itself
                 .writer(new ItemWriter<User>() {
                     @Override
                     public void write(List items) throws Exception {
                     }
                 })
-                        .taskExecutor(taskExecutor)
+                .taskExecutor(taskExecutor)
                         //.throttleLimit(2)
                 .build();
     }
