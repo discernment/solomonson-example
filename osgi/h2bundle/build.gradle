@@ -1,0 +1,54 @@
+apply plugin: 'java'
+apply plugin: 'bundle'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+sourceCompatibility = 1.7
+version = '1.0'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile 'org.slf4j:slf4j-log4j12:1.7.7'
+    compile 'org.osgi:org.osgi.core:5.0.0'
+    compile 'com.h2database:h2:1.4.181'
+    testCompile group: 'junit', name: 'junit', version: '4.11'
+}
+
+//these variables are defined for bundle properties
+def groupName = "com.solomonson"
+def artifactName = "H2Bundle"
+def symbolicName = "com.solomonson.example.h2bundle"
+
+def bundleVersion = "$project.version"
+
+// Buildscript in order to create the OSGI bundle
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'org.dm.gradle:bundle:0.4'
+    }
+}
+
+bundle{
+    instructions<<[
+            'Bundle-Version': "$bundleVersion",
+            'Import-Package': 'org.slf4j.*,org.osgi.framework',
+            'Export-Package': "$symbolicName;version='$bundleVersion'",
+            'Bundle-Name': "$groupName :: $artifactName",
+            'Bundle-SymbolicName': "$symbolicName",
+            'Bundle-Activator': 'com.solomonson.example.h2bundle.Activator'
+    ]
+}
+
+// Buildscript in order to create fat jar (execution-> gradle shadowJar)
+buildscript {
+    repositories { jcenter() }
+    dependencies {
+        classpath 'com.github.jengelman.gradle.plugins:shadow:1.0.3'
+    }
+}
